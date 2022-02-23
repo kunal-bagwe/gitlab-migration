@@ -5,9 +5,9 @@ echo "Extracting project names from misp and magenta repositories: "
 #for i in {1..10}
 #do
 #  echo "Getting repos for misp in group halo at page: ${i}"
-#  curl -H "Content-Type: application/json"  --header "PRIVATE-TOKEN: glpat-VYSRi583w3PpGJncnY8w" "https://misp.t-systems.com/tools/gitlab/api/v4/groups/halo/projects?page=$i&page_limit=100" | jq ' .[] | (.id | tostring)+ " "+.path' >> misp-inf.txt
+#  curl -H "Content-Type: application/json"  --header "PRIVATE-TOKEN:" "https://misp.t-systems.com/tools/gitlab/api/v4/groups/halo/projects?page=$i&page_limit=100" | jq ' .[] | (.id | tostring)+ " "+.path' >> misp-inf.txt
 #  echo "Getting repos for magenta in group halo at page : ${i}"
-#  curl -H "Content-Type: application/json"  --header "PRIVATE-TOKEN: glpat-TGh5-m7frDyj954vyvd5" "https://gitlab.devops.telekom.de/api/v4/groups/halo/projects?page=$i&page_limit=100" | jq '.[] | (.id | tostring)+ " "+.path' >> magenta-inf.txt
+#  curl -H "Content-Type: application/json"  --header "PRIVATE-TOKEN: " "https://gitlab.devops.telekom.de/api/v4/groups/halo/projects?page=$i&page_limit=100" | jq '.[] | (.id | tostring)+ " "+.path' >> magenta-inf.txt
 #done
 
 while read line; do
@@ -37,7 +37,7 @@ while read line; do
   fi
 
   # get protected_branches for a particular misp project
-  get_branches=$(curl -H "Content-Type: application/json"  --header "PRIVATE-TOKEN: glpat-VYSRi583w3PpGJncnY8w" "https://misp.t-systems.com/tools/gitlab/api/v4/projects/${misp_get_id}/protected_branches" | jq -r ' .[] .name')
+  get_branches=$(curl -H "Content-Type: application/json"  --header "PRIVATE-TOKEN: " "https://misp.t-systems.com/tools/gitlab/api/v4/projects/${misp_get_id}/protected_branches" | jq -r ' .[] .name')
   # loop over branch names
   for b in $get_branches
   do
@@ -49,15 +49,15 @@ while read line; do
     fi
     # fresh register, for which delete target magenta repo protected_branch 
     echo "Delete branch ${b}, if already present on magenta"
-    curl --request DELETE --header "PRIVATE-TOKEN: glpat-TGh5-m7frDyj954vyvd5" "https://gitlab.devops.telekom.de/api/v4/projects/"${magenta_get_id}"/protected_branches/${b}" 
+    curl --request DELETE --header "PRIVATE-TOKEN: " "https://gitlab.devops.telekom.de/api/v4/projects/"${magenta_get_id}"/protected_branches/${b}" 
     echo "Get push count"
     # Get push count on misp_repo
-    push=$(curl -H "Content-Type: application/json"  --header "PRIVATE-TOKEN: glpat-VYSRi583w3PpGJncnY8w" "https://misp.t-systems.com/tools/gitlab/api/v4/projects/"$misp_get_id"/protected_branches/$b" | jq -r '.push_access_levels[].access_level')
+    push=$(curl -H "Content-Type: application/json"  --header "PRIVATE-TOKEN: " "https://misp.t-systems.com/tools/gitlab/api/v4/projects/"$misp_get_id"/protected_branches/$b" | jq -r '.push_access_levels[].access_level')
     echo "Get Merge count"
     # Get merge_count on misp_repo
-    merge=$(curl -H "Content-Type: application/json"  --header "PRIVATE-TOKEN: glpat-VYSRi583w3PpGJncnY8w" "https://misp.t-systems.com/tools/gitlab/api/v4/projects/"${misp_get_id}"/protected_branches/"${b}"" | jq -r '.merge_access_levels[].access_level')
+    merge=$(curl -H "Content-Type: application/json"  --header "PRIVATE-TOKEN: " "https://misp.t-systems.com/tools/gitlab/api/v4/projects/"${misp_get_id}"/protected_branches/"${b}"" | jq -r '.merge_access_levels[].access_level')
     # Register protected_branch in magenta_repo
-    curl --request POST --header "PRIVATE-TOKEN: glpat-TGh5-m7frDyj954vyvd5" "https://gitlab.devops.telekom.de/api/v4/projects/"${magenta_get_id}"/protected_branches?name=${b}&push_access_level=${push}&merge_access_level=${merge}"
+    curl --request POST --header "PRIVATE-TOKEN: " "https://gitlab.devops.telekom.de/api/v4/projects/"${magenta_get_id}"/protected_branches?name=${b}&push_access_level=${push}&merge_access_level=${merge}"
     sleep 10
   done
   # Add magenta_repo names in conpleted_migration.txt file
@@ -66,7 +66,7 @@ while read line; do
 done < magenta-inf.txt
 
 # Get projects in group jdp
-# curl -H "Content-Type: application/json"  --header "PRIVATE-TOKEN: glpat-VYSRi583w3PpGJncnY8w" "https://misp.t-systems.com/tools/gitlab/api/v4/groups/jdp/projects" | jq ' .[] | (.id | tostring)+ " "+.path' >> misp-jdp-inf.txt
+# curl -H "Content-Type: application/json"  --header "PRIVATE-TOKEN: " "https://misp.t-systems.com/tools/gitlab/api/v4/groups/jdp/projects" | jq ' .[] | (.id | tostring)+ " "+.path' >> misp-jdp-inf.txt
 
 #while read line; do
 #  misp_l=$(echo ${line} | sed 's/^.//;s/.$//')
@@ -85,7 +85,7 @@ done < magenta-inf.txt
 #    echo "misp repo : $misp_get_repo" >> missing-jdp.txt
 #    continue
 #  fi
-#  get_branches=$(curl -H "Content-Type: application/json"  --header "PRIVATE-TOKEN: glpat-VYSRi583w3PpGJncnY8w" "https://misp.t-systems.com/tools/gitlab/api/v4/projects/${misp_get_id}/protected_branches" | jq -r ' .[] .name')
+#  get_branches=$(curl -H "Content-Type: application/json"  --header "PRIVATE-TOKEN: " "https://misp.t-systems.com/tools/gitlab/api/v4/projects/${misp_get_id}/protected_branches" | jq -r ' .[] .name')
 #  for b in $get_branches
 #  do
 #    if [[ "$b" == *"/"* ]]
@@ -93,12 +93,12 @@ done < magenta-inf.txt
 #      b=$(echo $b | sed 's/\//%2F/')
 #    fi
 #    echo "Delete branch ${b}, if already present on magenta"
-#    curl --request DELETE --header "PRIVATE-TOKEN: glpat-TGh5-m7frDyj954vyvd5" "https://gitlab.devops.telekom.de/api/v4/projects/"${magenta_get_id}"/protected_branches/${b}"
+#    curl --request DELETE --header "PRIVATE-TOKEN: " "https://gitlab.devops.telekom.de/api/v4/projects/"${magenta_get_id}"/protected_branches/${b}"
 #    echo "Get push count"
-#    push=$(curl -H "Content-Type: application/json"  --header "PRIVATE-TOKEN: glpat-VYSRi583w3PpGJncnY8w" "https://misp.t-systems.com/tools/gitlab/api/v4/projects/"$misp_get_id"/protected_branches/$b" | jq -r '.push_access_levels[].access_level')
+#    push=$(curl -H "Content-Type: application/json"  --header "PRIVATE-TOKEN: " "https://misp.t-systems.com/tools/gitlab/api/v4/projects/"$misp_get_id"/protected_branches/$b" | jq -r '.push_access_levels[].access_level')
 #    echo "Get Merge count"
-#    merge=$(curl -H "Content-Type: application/json"  --header "PRIVATE-TOKEN: glpat-VYSRi583w3PpGJncnY8w" "https://misp.t-systems.com/tools/gitlab/api/v4/projects/"${misp_get_id}"/protected_branches/"${b}"" | jq -r '.merge_access_levels[].access_level')
-#   curl -s --request POST --header "PRIVATE-TOKEN: glpat-TGh5-m7frDyj954vyvd5" "https://gitlab.devops.telekom.de/api/v4/projects/"${magenta_get_id}"/protected_branches?name=${b}&push_access_level=${push}&merge_access_level=${merge}"
+#    merge=$(curl -H "Content-Type: application/json"  --header "PRIVATE-TOKEN: " "https://misp.t-systems.com/tools/gitlab/api/v4/projects/"${misp_get_id}"/protected_branches/"${b}"" | jq -r '.merge_access_levels[].access_level')
+#   curl -s --request POST --header "PRIVATE-TOKEN: " "https://gitlab.devops.telekom.de/api/v4/projects/"${magenta_get_id}"/protected_branches?name=${b}&push_access_level=${push}&merge_access_level=${merge}"
 #    sleep 5
 #  done
 #  echo "Completed for $magenta_repo" >> completed_migration_jdp.txt
